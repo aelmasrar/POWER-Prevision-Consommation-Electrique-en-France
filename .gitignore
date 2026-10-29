@@ -1,0 +1,5 @@
+.env
+donnees/brut/
+donnees/base/
+__pycache__/
+*.pyc
