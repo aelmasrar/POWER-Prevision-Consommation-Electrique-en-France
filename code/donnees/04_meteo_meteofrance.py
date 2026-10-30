@@ -247,9 +247,7 @@ def main() -> None:
                            dtype={"departement": str, "num_poste": str, "num_poste_secours": str})
     stations["num_poste"] = stations["num_poste"].str.zfill(8)
     if "num_poste_secours" not in stations:
-        stations["num_poste_secours"] = None
-    stations["num_poste_secours"] = stations["num_poste_secours"].where(
-        stations["num_poste_secours"].notna(), None)
+        stations["num_poste_secours"] = pd.NA
     stations["departement"] = stations["departement"].str.zfill(2)
 
     if not a.sans_telechargement:
@@ -264,7 +262,8 @@ def main() -> None:
 
     for _, st in stations.iterrows():
         print(f"{st.code_region} : dép. {st.departement} ...")
-        secours = st.num_poste_secours.zfill(8) if st.num_poste_secours else None
+        secours = (str(st.num_poste_secours).zfill(8)
+                   if pd.notna(st.num_poste_secours) else None)
         brut, station, brut_secours = lire_departement(
             st.departement, st.num_poste, st.lat, st.lon,
             index[0] - pd.Timedelta(hours=1), index[-1] + pd.Timedelta(hours=1), secours)
