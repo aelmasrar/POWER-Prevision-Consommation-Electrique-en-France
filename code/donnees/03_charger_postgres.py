@@ -9,8 +9,9 @@ Sorties : tables region, conso_rte et production_filiere remplies.
 Le script peut être relancé autant de fois que voulu : les lignes déjà présentes
 sont mises à jour, jamais dupliquées (clé heure_utc + code_region).
 Il ne touche qu'aux tables de maxou ; celles des autres membres restent intactes.
-Les lignes de conso_rte hors de la période du fichier sont supprimées, pour que la
-base corresponde toujours exactement à la dernière version de l'étape 2.
+Les lignes de conso_rte et production_filiere absentes du fichier (hors période, ou
+pas à l'heure pile comme les anciennes lignes de :30) sont supprimées : la base
+correspond toujours exactement à la dernière version de l'étape 2.
 
 Connexion : l'adresse de la base est lue dans la variable DATABASE_URL, ou dans
 le fichier POWER/.env (une ligne DATABASE_URL=postgresql://...). Ce fichier
@@ -99,7 +100,8 @@ def main() -> None:
 
         for table in ("conso_rte", "production_filiere"):
             cur.execute(f"DELETE FROM {table} WHERE code_region = %s "
-                        "AND (heure_utc < %s OR heure_utc > %s)",
+                        "AND (heure_utc < %s OR heure_utc > %s "
+                        "OR heure_utc <> date_trunc('hour', heure_utc))",
                         (REGION, base.index.min(), base.index.max()))
 
         cur.execute("SELECT count(*), count(conso_mw), min(heure_utc), max(heure_utc) "
