@@ -8,54 +8,52 @@ Document à partager avec l'équipe : tout le monde entraîne ses modèles (CatB
 - Pas de temps d'origine : 15 min pour la consommation (30 min pour les filières sur les années anciennes).
 - Le fichier brut est gardé tel quel dans `donnees/brut/`. On ne le corrige jamais à la main.
 
-## 2. Une ligne = 30 minutes, repérée en UTC
+## 2. Une ligne = une heure, repérée en UTC
 
 Pourquoi UTC et pas l'heure de Paris ? Exemple concret, nuit du 31 mars 2019 (passage à l'heure d'été) :
 
 | heure_utc | heure_locale (Paris) |
 |---|---|
-| 2019-03-31 00:30 | 01:30 |
-| 2019-03-31 01:00 | **03:00** (02:00 et 02:30 n'existent pas) |
-| 2019-03-31 01:30 | 03:30 |
+| 2019-03-31 00:00 | 01:00 |
+| 2019-03-31 01:00 | **03:00** (02:00 n'existe pas) |
+| 2019-03-31 02:00 | 04:00 |
 
-Et le 27 octobre 2019, l'heure locale 02:00 apparaît **deux fois**. En heure de Paris on aurait donc un trou en mars et un doublon en octobre ; en UTC la suite est parfaite, toujours 30 min d'écart. Les variables de calendrier, elles, sont calculées en heure de Paris, car c'est l'heure de Paris qui règle la vie des gens (lever, bureau, repas).
+Et le 27 octobre 2019, l'heure locale 02:00 apparaît **deux fois**. En heure de Paris on aurait donc un trou en mars et un doublon en octobre ; en UTC la suite est parfaite, toujours 1 h d'écart. Les variables de calendrier, elles, sont calculées en heure de Paris, car c'est l'heure de Paris qui règle la vie des gens (lever, bureau, repas).
 
-`heure_utc` = **début de la demi-heure** (07:00, 07:30). Dans le fichier RTE, la conso n'est remplie qu'à :00 et :30 (vide à :15 et :45) : la valeur d'un pas est donc la valeur RTE telle quelle, en MW.
-
-La météo et le calendrier restent **horaires** : dans la vue `v_base_modele`, la valeur de 07:00 est recopiée sur 07:00 et 07:30.
+`heure_utc` = **début de l'heure** (07:00 = de 07:00 à 08:00 UTC). Dans le fichier RTE, la conso n'est remplie qu'à :00 et :30 (vide à :15 et :45) : la valeur horaire est la moyenne de ces deux valeurs, en MW (donc une puissance moyenne sur l'heure). La météo et le calendrier sont aussi horaires : tout se joint directement sur `heure_utc`.
 
 **Changements d'heure dans le fichier RTE** (vérifié sur les vraies données) :
 - Au printemps, RTE ajoute des lignes fictives pour l'heure qui n'existe pas (02:00 à 02:45, heure de Paris), avec des valeurs recopiées et le même horodatage UTC que 03:00 à 03:45. Le script les retire (4 lignes par an).
-- À l'automne, RTE ne publie qu'une seule fois l'heure 02:xx. Il manque donc une heure par an dans la base, soit 2 pas de 30 min (00:00 et 00:30 UTC le jour du passage à l'heure d'hiver, 28 pas sur 2012-2025). Ils restent vides : c'est à Yassine de décider comment la combler.
+- À l'automne, RTE ne publie qu'une seule fois l'heure 02:xx. Il manque donc une heure par an dans la base (00:00 UTC le jour du passage à l'heure d'hiver, 14 heures sur 2012-2025). Elle reste vide : c'est à Yassine de décider comment la combler.
 
-Période : du 1er janvier 2012 00:00 au 31 décembre 2025 23:30 (heure de Paris), soit **245 472 lignes** (14 ans, dont 12 hivers d'entraînement).
+Période : du 1er janvier 2012 00:00 au 31 décembre 2025 23:00 (heure de Paris), soit **122 736 lignes** (14 ans, dont 12 hivers d'entraînement) : train 105 192, valid 8 784, test 8 760.
 
 Découpage (colonne `split`) : **train 2012-2023, valid 2024, test 2025**. Les trois périodes sont dans la base. La validation sert à régler les modèles, le test n'est utilisé qu'une fois à la fin pour comparer CatBoost, LightGBM et XGBoost.
 
-RTE n'a **aucune donnée avant le 1er janvier 2012**. Les premiers jours de 2012 n'ont donc pas de retard : pas de lag 48 h sur les 2 premiers jours (96 pas), pas de lag 7 jours sur la première semaine (336 pas), soit 0,16 % du train. On les laisse vides : CatBoost, LightGBM et XGBoost gèrent les valeurs manquantes.
+RTE n'a **aucune donnée avant le 1er janvier 2012**. Les premiers jours de 2012 n'ont donc pas de retard : pas de lag 48 h sur les 2 premiers jours (48 heures), pas de lag 7 jours sur la première semaine (168 heures), soit 0,16 % du train. On les laisse vides : CatBoost, LightGBM et XGBoost gèrent les valeurs manquantes.
 
-## 3. Colonnes de la table `base_power_30min.parquet`
+## 3. Colonnes de la table `base_power_horaire.parquet`
 
 Le squelette fixe **toutes** les colonnes dès maintenant, pour que chacun sache où écrire. Celles marquées « vide » existent avec le bon type mais sont remplies par le membre indiqué, selon la répartition du groupe : créer la base = maxou, nettoyage et encodage = Yassine, choix des features = Amine et Hugo.
 
 | Colonne | Type | Rôle | Rempli par | Exemple |
 |---|---|---|---|---|
-| `heure_utc` (index) | datetime UTC | clé de jointure | base (maxou) | 2024-01-15 07:30+00:00 |
-| `heure_locale` | datetime | lecture humaine | base (maxou) | 2024-01-15 08:30 |
+| `heure_utc` (index) | datetime UTC | clé de jointure | base (maxou) | 2024-01-15 07:00+00:00 |
+| `heure_locale` | datetime | lecture humaine | base (maxou) | 2024-01-15 08:00 |
 | `split` | catégorie | train 2012-2023, valid 2024, test 2025 (convention de groupe) | base (maxou) | valid |
 | **`conso_mw`** | float32 | **cible** | base (maxou) | 78 450 |
 | `conso_imputee` | bool | heure dont la conso a été corrigée/imputée | vide, nettoyage (Yassine) | False |
 | `conso_suspecte` | bool | valeur aberrante repérée | vide, nettoyage (Yassine) | False |
 | `prevision_rte_j1_mw` | float32 | prévision J-1 de RTE : **référence à battre, pas une variable d'entrée** | base (maxou) | 77 900 |
 | `prevision_rte_j_mw` | float32 | prévision du jour même de RTE (référence) | base (maxou) | 78 200 |
-| `conso_lag_48h`, `conso_lag_168h` | float32 | conso 48 h et 7 jours avant (96 et 336 pas de 30 min) | vide, features (Amine / Hugo) | 76 100 |
+| `conso_lag_48h`, `conso_lag_168h` | float32 | conso 48 h et 7 jours avant (48 et 168 lignes) | vide, features (Amine / Hugo) | 76 100 |
 | `heure`, `jour_semaine` (0 = lundi), `mois`, `jour_annee`, `semaine_iso`, `annee` | entiers | calendrier, en heure de Paris | vide, features (Amine / Hugo) | 8, 0, 1, 15, 3, 2024 |
 | `est_weekend`, `est_heure_ete`, `est_ferie`, `est_pont` | bool | calendrier | vide, features (Amine / Hugo) | False |
 | `nom_ferie` | texte | nom du jour férié | vide, features (Amine / Hugo) | "" |
 | `vacances_zone_a/b/c` | bool | vacances scolaires | vide, features (Amine / Hugo) | |
 | `temp_prevue_c`, `nebulosite_prevue_pct`, `vent_prevu_ms`, `rayonnement_prevu_wm2` | float32 | météo **prévue** | vide, features (Amine / Hugo) | |
 
-Production par filière (nucléaire, éolien, solaire, hydraulique, gaz, etc.) : dans un fichier à part, `production_filieres_30min.parquet`, même index. Elle sert au dashboard (le sujet demande de choisir une filière), **pas aux modèles** : la production de la demi-heure H n'est pas connue la veille, l'utiliser comme variable serait de la triche.
+Production par filière (nucléaire, éolien, solaire, hydraulique, gaz, etc.) : dans un fichier à part, `production_filieres_horaire.parquet`, même index. Elle sert au dashboard (le sujet demande de choisir une filière), **pas aux modèles** : la production de l'heure H n'est pas connue la veille, l'utiliser comme variable serait de la triche.
 
 ## 4. Trois règles à ne pas casser
 
@@ -65,7 +63,7 @@ Production par filière (nucléaire, éolien, solaire, hydraulique, gaz, etc.) :
 
 ## 5. Qualité des données (pour Yassine)
 
-La base livrée contient la conso **brute** au pas de 30 min : rien n'est corrigé. Le script écrit `donnees/base/etat_du_brut.txt`, un simple constat pour démarrer le nettoyage : doublons, pas de temps rencontrés, pas sans conso par année, min / moyenne / max, et vérification des jours de 23 h et 25 h, soit 46 et 50 pas (changements d'heure).
+La base livrée contient la conso **brute** horaire : rien n'est corrigé. Le script écrit `donnees/base/etat_du_brut.txt`, un simple constat pour démarrer le nettoyage : doublons, pas de temps rencontrés, heures sans conso par année, min / moyenne / max, et vérification des jours de 23 h et 25 h (changements d'heure).
 
 ## 6. Ce qui reste aux autres membres (Yassine, Amine, Hugo)
 

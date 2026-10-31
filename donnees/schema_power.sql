@@ -1,8 +1,7 @@
 -- Schéma de la base POWER (PostgreSQL)
 -- Règle : une table par source de données, toutes reliées par (heure_utc, code_region).
--- Période : 2012-2025 (train 2012-2023, valid 2024, test 2025). La conso est au pas de 30 min : heure_utc = début de la demi-heure
--- (07:00 et 07:30). La météo et le calendrier restent horaires (07:00) : la vue applique
--- la valeur de l'heure aux deux demi-heures.
+-- Période : 2012-2025 (train 2012-2023, valid 2024, test 2025). Tout est au pas horaire :
+-- heure_utc = début de l'heure (07:00 = de 07:00 à 08:00 UTC).
 -- Chaque membre n'écrit que dans ses tables ; la vue v_base_modele assemble le tout.
 --   maxou        : region, conso_rte, production_filiere
 --   Yassine      : conso_nettoyee
@@ -16,9 +15,9 @@ CREATE TABLE IF NOT EXISTS region (
     population      INTEGER                    -- pour pondérer la météo
 );
 
--- [maxou] Consommation RTE éCO2mix, au pas de 30 min, NON corrigée.
+-- [maxou] Consommation RTE éCO2mix, horaire, NON corrigée.
 CREATE TABLE IF NOT EXISTS conso_rte (
-    heure_utc           TIMESTAMPTZ NOT NULL,  -- toujours en UTC, début du pas de 30 min
+    heure_utc           TIMESTAMPTZ NOT NULL,  -- toujours en UTC, début de l'heure
     code_region         TEXT NOT NULL REFERENCES region,
     conso_mw            REAL,                  -- cible (NULL si RTE n'a rien publié)
     prevision_j1_mw     REAL,                  -- prévision RTE de la veille : score à battre
@@ -97,7 +96,7 @@ CREATE TABLE IF NOT EXISTS evenement (
     description     TEXT
 );
 
--- Table finale lue par CatBoost, LightGBM et XGBoost : une ligne par pas de 30 min.
+-- Table finale lue par CatBoost, LightGBM et XGBoost : une ligne par heure.
 -- Rien n'y est stocké : elle est recalculée à chaque lecture, donc toujours à jour.
 -- DROP puis CREATE : PostgreSQL refuse de modifier les colonnes d'une vue existante.
 DROP VIEW IF EXISTS v_base_modele;
@@ -116,6 +115,6 @@ SELECT
               AND e.type = 'confinement')  AS en_confinement
 FROM conso_rte c
 LEFT JOIN conso_nettoyee n USING (heure_utc, code_region)
-LEFT JOIN calendrier     k ON k.heure_utc = date_trunc('hour', c.heure_utc)
-LEFT JOIN meteo_prevue   m ON m.heure_utc = date_trunc('hour', c.heure_utc)
+LEFT JOIN calendrier     k ON k.heure_utc = c.heure_utc
+LEFT JOIN meteo_prevue   m ON m.heure_utc = c.heure_utc
                           AND m.code_region = c.code_region;

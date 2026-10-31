@@ -1,15 +1,15 @@
 """
-Étape 2 : construire la base au pas de 30 min du projet POWER à partir du fichier brut RTE.
+Étape 2 : construire la base horaire du projet POWER à partir du fichier brut RTE.
 
 Entrée  : donnees/brut/eco2mix-national-cons-def_*.csv (sortie de l'étape 1)
-Sorties : donnees/base/base_power_30min.parquet (+ .csv)     -> table des modèles
-          donnees/base/production_filieres_30min.parquet     -> pour le dashboard
+Sorties : donnees/base/base_power_horaire.parquet (+ .csv)   -> table des modèles
+          donnees/base/production_filieres_horaire.parquet   -> pour le dashboard
           donnees/base/etat_du_brut.txt                      -> constat pour le nettoyage
 
 Règles (voir donnees/squelette-base.md) :
-- une ligne = 30 min, index en UTC (pas de trou ni de doublon aux changements d'heure) ;
-- la valeur d'un pas = moyenne des valeurs publiées dans la demi-heure (en MW). En pratique
-  RTE ne remplit la conso qu'à :00 et :30, c'est donc la valeur RTE telle quelle ;
+- une ligne = une heure, index en UTC (pas de trou ni de doublon aux changements d'heure) ;
+- la valeur horaire = moyenne des valeurs publiées dans l'heure (en MW). En pratique RTE
+  ne remplit la conso qu'à :00 et :30 : c'est la moyenne de ces deux valeurs ;
 - seule correction : les lignes fictives que RTE ajoute pour l'heure qui n'existe pas
   au passage à l'heure d'été sont retirées (voir retirer_heures_fictives) ;
 - AUCUN autre nettoyage ici : les trous et valeurs bizarres restent tels quels. Le script
@@ -34,10 +34,10 @@ DOSSIER_BRUT = RACINE / "donnees" / "brut"
 DOSSIER_BASE = RACINE / "donnees" / "base"
 
 TZ = "Europe/Paris"
-# Du 1er janvier 2012 00:00 au 31 décembre 2025 23:30, heure de Paris, au pas de 30 min.
-PAS = "30min"
+# Du 1er janvier 2012 00:00 au 31 décembre 2025 23:00, heure de Paris, au pas horaire.
+PAS = "h"
 DEBUT = pd.Timestamp("2012-01-01 00:00", tz=TZ).tz_convert("UTC")
-FIN = pd.Timestamp("2025-12-31 23:30", tz=TZ).tz_convert("UTC")
+FIN = pd.Timestamp("2025-12-31 23:00", tz=TZ).tz_convert("UTC")
 
 DECOUPAGE = {**{annee: "train" for annee in range(2012, 2024)}, 2024: "valid", 2025: "test"}
 
@@ -100,7 +100,7 @@ def retirer_heures_fictives(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     passage à l'heure d'été (ex. 31/03/2019 de 02:00 à 02:45, heure de Paris).
 
     RTE leur donne le même horodatage UTC que les vraies lignes de 03:00 à 03:45,
-    avec des valeurs recopiées : les garder fausserait la moyenne de la demi-heure.
+    avec des valeurs recopiées : les garder fausserait la moyenne horaire.
     """
     if not {"date", "heure"} <= set(df.columns):
         return df, 0
@@ -110,7 +110,7 @@ def retirer_heures_fictives(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     return df[~inexistante.to_numpy()], int(inexistante.sum())
 
 
-def vers_pas_30min(df: pd.DataFrame, correspondance: dict) -> pd.DataFrame:
+def vers_horaire(df: pd.DataFrame, correspondance: dict) -> pd.DataFrame:
     cols = {src: dst for src, dst in correspondance.items() if src in df.columns}
     sous = df[["date_heure", *cols]].rename(columns=cols)
     sous = sous.T.groupby(level=0).first().T  # fusionne les alias éventuels
@@ -133,7 +133,7 @@ def main() -> None:
     ]
 
     index = pd.date_range(DEBUT, FIN, freq=PAS, tz="UTC", name="heure_utc")
-    base = vers_pas_30min(brut, COLONNES_CONSO).reindex(index)
+    base = vers_horaire(brut, COLONNES_CONSO).reindex(index)
     local = base.index.tz_convert(TZ)
     base["heure_locale"] = local.tz_localize(None)
     base["split"] = pd.Series(local.year, index=base.index).map(DECOUPAGE).astype("category")
@@ -153,28 +153,28 @@ def main() -> None:
     # Constat (on ne corrige rien)
     jours_locaux = base.groupby(base["heure_locale"].dt.date).size()
     constat += [
-        f"Pas de 30 min dans la base : {len(base)} "
+        f"Heures dans la base : {len(base)} "
         f"({base.index[0]} -> {base.index[-1]} UTC)",
-        f"Pas sans conso : {base['conso_mw'].isna().sum()}",
+        f"Heures sans conso : {base['conso_mw'].isna().sum()}",
         f"Conso min / moy / max : {base['conso_mw'].min():.0f} / "
         f"{base['conso_mw'].mean():.0f} / {base['conso_mw'].max():.0f} MW",
-        "Jours de 23 h = 46 pas (passage à l'heure d'été) : "
-        f"{[str(d) for d in jours_locaux[jours_locaux == 46].index]}",
-        "Jours de 25 h = 50 pas (passage à l'heure d'hiver) : "
-        f"{[str(d) for d in jours_locaux[jours_locaux == 50].index]}",
-        f"Pas par split : {base['split'].value_counts().sort_index().to_dict()}",
+        "Jours de 23 h (passage à l'heure d'été) : "
+        f"{[str(d) for d in jours_locaux[jours_locaux == 23].index]}",
+        "Jours de 25 h (passage à l'heure d'hiver) : "
+        f"{[str(d) for d in jours_locaux[jours_locaux == 25].index]}",
+        f"Heures par split : {base['split'].value_counts().sort_index().to_dict()}",
     ]
     for annee, n in base.groupby(local.year)["conso_mw"].apply(
             lambda s: s.isna().sum()).items():
-        constat.append(f"  {annee} : {n} pas sans conso")
+        constat.append(f"  {annee} : {n} h sans conso")
 
-    base.to_parquet(DOSSIER_BASE / "base_power_30min.parquet")
-    base.to_csv(DOSSIER_BASE / "base_power_30min.csv", sep=";", decimal=",")
+    base.to_parquet(DOSSIER_BASE / "base_power_horaire.parquet")
+    base.to_csv(DOSSIER_BASE / "base_power_horaire.csv", sep=";", decimal=",")
 
-    filieres = vers_pas_30min(brut, COLONNES_FILIERES).reindex(base.index)
+    filieres = vers_horaire(brut, COLONNES_FILIERES).reindex(base.index)
     filieres = filieres.astype("float32")
     filieres.insert(0, "heure_locale", base["heure_locale"])
-    filieres.to_parquet(DOSSIER_BASE / "production_filieres_30min.parquet")
+    filieres.to_parquet(DOSSIER_BASE / "production_filieres_horaire.parquet")
 
     (DOSSIER_BASE / "etat_du_brut.txt").write_text("\n".join(constat) + "\n",
                                                     encoding="utf-8")

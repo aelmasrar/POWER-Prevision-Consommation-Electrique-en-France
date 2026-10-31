@@ -1,8 +1,8 @@
 """
-Étape 3 : charger la base au pas de 30 min dans la base PostgreSQL partagée du groupe.
+Étape 3 : charger la base horaire dans la base PostgreSQL partagée du groupe.
 
-Entrées : donnees/base/base_power_30min.parquet            (sortie de l'étape 2)
-          donnees/base/production_filieres_30min.parquet
+Entrées : donnees/base/base_power_horaire.parquet          (sortie de l'étape 2)
+          donnees/base/production_filieres_horaire.parquet
           donnees/schema_power.sql                         (création des tables)
 Sorties : tables region, conso_rte et production_filiere remplies.
 
@@ -66,8 +66,8 @@ def valeur(x):
 
 
 def main() -> None:
-    base = pd.read_parquet(DOSSIER_BASE / "base_power_30min.parquet")
-    filieres = pd.read_parquet(DOSSIER_BASE / "production_filieres_30min.parquet")
+    base = pd.read_parquet(DOSSIER_BASE / "base_power_horaire.parquet")
+    filieres = pd.read_parquet(DOSSIER_BASE / "production_filieres_horaire.parquet")
 
     with psycopg.connect(adresse_base()) as conn, conn.cursor() as cur:
         # Ancienne version de production_filiere (une ligne par filière) : on la remplace
@@ -106,7 +106,7 @@ def main() -> None:
                     "FROM conso_rte WHERE code_region = %s", (REGION,))
         total, avec_conso, debut, fin = cur.fetchone()
 
-    print(f"conso_rte : {n_conso} lignes écrites ; dans la base : {total} pas de 30 min "
+    print(f"conso_rte : {n_conso} lignes écrites ; dans la base : {total} heures "
           f"({total - avec_conso} sans conso), de {debut} à {fin}")
     print(f"production_filiere : {n_prod} lignes écrites")
 
