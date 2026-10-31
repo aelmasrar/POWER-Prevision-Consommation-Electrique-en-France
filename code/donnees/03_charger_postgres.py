@@ -1,14 +1,16 @@
 """
-Étape 3 : charger la base horaire dans la base PostgreSQL partagée du groupe.
+Étape 3 : charger la base au pas de 30 min dans la base PostgreSQL partagée du groupe.
 
-Entrées : donnees/base/base_power_horaire.parquet          (sortie de l'étape 2)
-          donnees/base/production_filieres_horaire.parquet
+Entrées : donnees/base/base_power_30min.parquet            (sortie de l'étape 2)
+          donnees/base/production_filieres_30min.parquet
           donnees/schema_power.sql                         (création des tables)
 Sorties : tables region, conso_rte et production_filiere remplies.
 
 Le script peut être relancé autant de fois que voulu : les lignes déjà présentes
 sont mises à jour, jamais dupliquées (clé heure_utc + code_region).
 Il ne touche qu'aux tables de maxou ; celles des autres membres restent intactes.
+Les lignes de conso_rte hors de la période du fichier sont supprimées, pour que la
+base corresponde toujours exactement à la dernière version de l'étape 2.
 
 Connexion : l'adresse de la base est lue dans la variable DATABASE_URL, ou dans
 le fichier POWER/.env (une ligne DATABASE_URL=postgresql://...). Ce fichier
@@ -64,10 +66,16 @@ def valeur(x):
 
 
 def main() -> None:
-    base = pd.read_parquet(DOSSIER_BASE / "base_power_horaire.parquet")
-    filieres = pd.read_parquet(DOSSIER_BASE / "production_filieres_horaire.parquet")
+    base = pd.read_parquet(DOSSIER_BASE / "base_power_30min.parquet")
+    filieres = pd.read_parquet(DOSSIER_BASE / "production_filieres_30min.parquet")
 
     with psycopg.connect(adresse_base()) as conn, conn.cursor() as cur:
+        # Ancienne version de production_filiere (une ligne par filière) : on la remplace
+        # par la version à une colonne par filière. Seul maxou écrit dans cette table.
+        cur.execute("SELECT 1 FROM information_schema.columns "
+                    "WHERE table_name = 'production_filiere' AND column_name = 'filiere'")
+        if cur.fetchone():
+            cur.execute("DROP TABLE production_filiere")
         cur.execute(SCHEMA.read_text(encoding="utf-8"))
         cur.execute(
             "INSERT INTO region (code_region, nom) VALUES (%s, 'France') "
@@ -81,22 +89,24 @@ def main() -> None:
              for h, r in zip(base.index, base.itertuples())))
 
         # Seules les colonnes en MW vont dans cette table (pas le taux de CO2 en g/kWh).
-        longue = (filieres[[c for c in filieres.columns if c.endswith("_mw")]]
-                  .rename_axis("heure_utc").reset_index()
-                  .melt(id_vars="heure_utc", var_name="filiere", value_name="production_mw")
-                  .dropna(subset=["production_mw"]))
-        longue["filiere"] = longue["filiere"].str.removeprefix("prod_").str.removesuffix("_mw")
+        prod = filieres[[c for c in filieres.columns if c.endswith("_mw")]]
+        prod.columns = [c.removeprefix("prod_") for c in prod.columns]
         n_prod = remplacer(
-            cur, "production_filiere", ["heure_utc", "code_region", "filiere"],
-            ["heure_utc", "code_region", "filiere", "production_mw"],
-            ((h, REGION, f, float(p)) for h, f, p in longue[["heure_utc", "filiere", "production_mw"]]
-             .itertuples(index=False)))
+            cur, "production_filiere", ["heure_utc", "code_region"],
+            ["heure_utc", "code_region", *prod.columns],
+            ((h, REGION, *map(valeur, ligne))
+             for h, ligne in zip(prod.index, prod.itertuples(index=False))))
+
+        for table in ("conso_rte", "production_filiere"):
+            cur.execute(f"DELETE FROM {table} WHERE code_region = %s "
+                        "AND (heure_utc < %s OR heure_utc > %s)",
+                        (REGION, base.index.min(), base.index.max()))
 
         cur.execute("SELECT count(*), count(conso_mw), min(heure_utc), max(heure_utc) "
                     "FROM conso_rte WHERE code_region = %s", (REGION,))
         total, avec_conso, debut, fin = cur.fetchone()
 
-    print(f"conso_rte : {n_conso} lignes écrites ; dans la base : {total} heures "
+    print(f"conso_rte : {n_conso} lignes écrites ; dans la base : {total} pas de 30 min "
           f"({total - avec_conso} sans conso), de {debut} à {fin}")
     print(f"production_filiere : {n_prod} lignes écrites")
 

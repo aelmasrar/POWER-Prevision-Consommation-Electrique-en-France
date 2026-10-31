@@ -1,5 +1,8 @@
 -- Schéma de la base POWER (PostgreSQL)
 -- Règle : une table par source de données, toutes reliées par (heure_utc, code_region).
+-- Période : 2012-2025 (train 2012-2023, valid 2024, test 2025). La conso est au pas de 30 min : heure_utc = début de la demi-heure
+-- (07:00 et 07:30). La météo et le calendrier restent horaires (07:00) : la vue applique
+-- la valeur de l'heure aux deux demi-heures.
 -- Chaque membre n'écrit que dans ses tables ; la vue v_base_modele assemble le tout.
 --   maxou        : region, conso_rte, production_filiere
 --   Yassine      : conso_nettoyee
@@ -13,9 +16,9 @@ CREATE TABLE IF NOT EXISTS region (
     population      INTEGER                    -- pour pondérer la météo
 );
 
--- [maxou] Consommation RTE éCO2mix, mise au pas horaire, NON corrigée.
+-- [maxou] Consommation RTE éCO2mix, au pas de 30 min, NON corrigée.
 CREATE TABLE IF NOT EXISTS conso_rte (
-    heure_utc           TIMESTAMPTZ NOT NULL,  -- toujours en UTC
+    heure_utc           TIMESTAMPTZ NOT NULL,  -- toujours en UTC, début du pas de 30 min
     code_region         TEXT NOT NULL REFERENCES region,
     conso_mw            REAL,                  -- cible (NULL si RTE n'a rien publié)
     prevision_j1_mw     REAL,                  -- prévision RTE de la veille : score à battre
@@ -25,15 +28,26 @@ CREATE TABLE IF NOT EXISTS conso_rte (
     PRIMARY KEY (heure_utc, code_region)
 );
 
--- [maxou] Production par filière (même fichier RTE). Format « long » :
--- une ligne par filière, donc une nouvelle filière n'oblige pas à changer la table.
+-- [maxou] Production par filière (même fichier RTE), une colonne par filière.
+-- (Format « large » : 10 fois moins de lignes qu'une ligne par filière, pour tenir
+-- dans les 0,5 Go gratuits de Neon.)
 -- Sert au dashboard, PAS aux modèles (inconnue la veille).
+-- echanges_physiques_mw (solde import/export) et pompage_mw (conso des STEP) ne sont
+-- pas de la production : à afficher à part.
 CREATE TABLE IF NOT EXISTS production_filiere (
-    heure_utc       TIMESTAMPTZ NOT NULL,
-    code_region     TEXT NOT NULL REFERENCES region,
-    filiere         TEXT NOT NULL,             -- 'nucleaire', 'eolien', 'solaire', ...
-    production_mw   REAL,
-    PRIMARY KEY (heure_utc, code_region, filiere)
+    heure_utc               TIMESTAMPTZ NOT NULL,
+    code_region             TEXT NOT NULL REFERENCES region,
+    nucleaire_mw            REAL,
+    eolien_mw               REAL,
+    solaire_mw              REAL,
+    hydraulique_mw          REAL,
+    gaz_mw                  REAL,
+    charbon_mw              REAL,
+    fioul_mw                REAL,
+    bioenergies_mw          REAL,
+    pompage_mw              REAL,
+    echanges_physiques_mw   REAL,
+    PRIMARY KEY (heure_utc, code_region)
 );
 
 -- [Yassine] Conso après nettoyage (trous, doublons, valeurs aberrantes).
@@ -83,9 +97,11 @@ CREATE TABLE IF NOT EXISTS evenement (
     description     TEXT
 );
 
--- Table finale lue par CatBoost, LightGBM et XGBoost. Rien n'y est stocké :
--- elle est recalculée à chaque lecture, donc toujours à jour.
-CREATE OR REPLACE VIEW v_base_modele AS
+-- Table finale lue par CatBoost, LightGBM et XGBoost : une ligne par pas de 30 min.
+-- Rien n'y est stocké : elle est recalculée à chaque lecture, donc toujours à jour.
+-- DROP puis CREATE : PostgreSQL refuse de modifier les colonnes d'une vue existante.
+DROP VIEW IF EXISTS v_base_modele;
+CREATE VIEW v_base_modele AS
 SELECT
     c.heure_utc,
     c.code_region,
@@ -100,5 +116,6 @@ SELECT
               AND e.type = 'confinement')  AS en_confinement
 FROM conso_rte c
 LEFT JOIN conso_nettoyee n USING (heure_utc, code_region)
-LEFT JOIN calendrier     k USING (heure_utc)
-LEFT JOIN meteo_prevue   m USING (heure_utc, code_region);
+LEFT JOIN calendrier     k ON k.heure_utc = date_trunc('hour', c.heure_utc)
+LEFT JOIN meteo_prevue   m ON m.heure_utc = date_trunc('hour', c.heure_utc)
+                          AND m.code_region = c.code_region;

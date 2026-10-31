@@ -10,7 +10,7 @@ jamais à la main, tout le nettoyage se fait dans 02_construire_base.py.
 
 Usage (depuis le dossier POWER) :
     python code/donnees/01_telecharger_rte.py
-    python code/donnees/01_telecharger_rte.py --debut 2018-12-20 --fin 2026-01-02
+    python code/donnees/01_telecharger_rte.py --debut 2011-12-20 --fin 2026-01-02
 """
 
 import argparse
@@ -28,8 +28,8 @@ URL_EXPORT = (
 
 
 def telecharger(jeu: str, debut: str, fin: str) -> Path:
-    # On télécharge aussi fin décembre 2018 : cette marge reste dans le fichier brut
-    # pour que les retards (lags) puissent être calculés dès le 1er janvier 2019.
+    # On télécharge aussi fin décembre 2011 : cette marge reste dans le fichier brut
+    # pour que les retards (lags) puissent être calculés dès le 1er janvier 2012.
     params = {
         "where": f"date_heure >= date'{debut}' AND date_heure < date'{fin}'",
         "timezone": "UTC",
@@ -54,7 +54,7 @@ def telecharger(jeu: str, debut: str, fin: str) -> Path:
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--jeu", default="eco2mix-national-cons-def")
-    p.add_argument("--debut", default="2018-12-20")
+    p.add_argument("--debut", default="2011-12-20")
     p.add_argument("--fin", default="2026-01-02")
     a = p.parse_args()
     telecharger(a.jeu, a.debut, a.fin)
