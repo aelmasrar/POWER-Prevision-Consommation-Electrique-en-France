@@ -32,7 +32,7 @@ Période : du 1er janvier 2012 00:00 au 31 décembre 2025 23:30 (heure de Paris)
 
 Découpage (colonne `split`) : **train 2012-2023, valid 2024, test 2025**. Les trois périodes sont dans la base. La validation sert à régler les modèles, le test n'est utilisé qu'une fois à la fin pour comparer CatBoost, LightGBM et XGBoost.
 
-Le fichier brut commence le 20 décembre 2011 : cette marge permet de calculer les retards dès le 1er janvier 2012.
+RTE n'a **aucune donnée avant le 1er janvier 2012**. Les premiers jours de 2012 n'ont donc pas de retard : pas de lag 48 h sur les 2 premiers jours (96 pas), pas de lag 7 jours sur la première semaine (336 pas), soit 0,16 % du train. On les laisse vides : CatBoost, LightGBM et XGBoost gèrent les valeurs manquantes.
 
 ## 3. Colonnes de la table `base_power_30min.parquet`
 
