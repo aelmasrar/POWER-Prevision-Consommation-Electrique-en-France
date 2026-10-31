@@ -9,6 +9,9 @@ Sorties : tables region, conso_rte et production_filiere remplies.
 Le script peut être relancé autant de fois que voulu : les lignes déjà présentes
 sont mises à jour, jamais dupliquées (clé heure_utc + code_region).
 Il ne touche qu'aux tables de maxou ; celles des autres membres restent intactes.
+Les lignes de conso_rte et production_filiere absentes du fichier (hors période, ou
+pas à l'heure pile comme les anciennes lignes de :30) sont supprimées : la base
+correspond toujours exactement à la dernière version de l'étape 2.
 
 Connexion : l'adresse de la base est lue dans la variable DATABASE_URL, ou dans
 le fichier POWER/.env (une ligne DATABASE_URL=postgresql://...). Ce fichier
@@ -68,6 +71,12 @@ def main() -> None:
     filieres = pd.read_parquet(DOSSIER_BASE / "production_filieres_horaire.parquet")
 
     with psycopg.connect(adresse_base()) as conn, conn.cursor() as cur:
+        # Ancienne version de production_filiere (une ligne par filière) : on la remplace
+        # par la version à une colonne par filière. Seul maxou écrit dans cette table.
+        cur.execute("SELECT 1 FROM information_schema.columns "
+                    "WHERE table_name = 'production_filiere' AND column_name = 'filiere'")
+        if cur.fetchone():
+            cur.execute("DROP TABLE production_filiere")
         cur.execute(SCHEMA.read_text(encoding="utf-8"))
         cur.execute(
             "INSERT INTO region (code_region, nom) VALUES (%s, 'France') "
@@ -81,16 +90,19 @@ def main() -> None:
              for h, r in zip(base.index, base.itertuples())))
 
         # Seules les colonnes en MW vont dans cette table (pas le taux de CO2 en g/kWh).
-        longue = (filieres[[c for c in filieres.columns if c.endswith("_mw")]]
-                  .rename_axis("heure_utc").reset_index()
-                  .melt(id_vars="heure_utc", var_name="filiere", value_name="production_mw")
-                  .dropna(subset=["production_mw"]))
-        longue["filiere"] = longue["filiere"].str.removeprefix("prod_").str.removesuffix("_mw")
+        prod = filieres[[c for c in filieres.columns if c.endswith("_mw")]]
+        prod.columns = [c.removeprefix("prod_") for c in prod.columns]
         n_prod = remplacer(
-            cur, "production_filiere", ["heure_utc", "code_region", "filiere"],
-            ["heure_utc", "code_region", "filiere", "production_mw"],
-            ((h, REGION, f, float(p)) for h, f, p in longue[["heure_utc", "filiere", "production_mw"]]
-             .itertuples(index=False)))
+            cur, "production_filiere", ["heure_utc", "code_region"],
+            ["heure_utc", "code_region", *prod.columns],
+            ((h, REGION, *map(valeur, ligne))
+             for h, ligne in zip(prod.index, prod.itertuples(index=False))))
+
+        for table in ("conso_rte", "production_filiere"):
+            cur.execute(f"DELETE FROM {table} WHERE code_region = %s "
+                        "AND (heure_utc < %s OR heure_utc > %s "
+                        "OR heure_utc <> date_trunc('hour', heure_utc))",
+                        (REGION, base.index.min(), base.index.max()))
 
         cur.execute("SELECT count(*), count(conso_mw), min(heure_utc), max(heure_utc) "
                     "FROM conso_rte WHERE code_region = %s", (REGION,))

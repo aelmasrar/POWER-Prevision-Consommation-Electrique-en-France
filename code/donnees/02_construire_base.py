@@ -8,7 +8,8 @@ Sorties : donnees/base/base_power_horaire.parquet (+ .csv)   -> table des modèl
 
 Règles (voir donnees/squelette-base.md) :
 - une ligne = une heure, index en UTC (pas de trou ni de doublon aux changements d'heure) ;
-- la valeur horaire = moyenne des pas de 15/30 min de l'heure (en MW) ;
+- la valeur horaire = moyenne des valeurs publiées dans l'heure (en MW). En pratique RTE
+  ne remplit la conso qu'à :00 et :30 : c'est la moyenne de ces deux valeurs ;
 - seule correction : les lignes fictives que RTE ajoute pour l'heure qui n'existe pas
   au passage à l'heure d'été sont retirées (voir retirer_heures_fictives) ;
 - AUCUN autre nettoyage ici : les trous et valeurs bizarres restent tels quels. Le script
@@ -33,12 +34,12 @@ DOSSIER_BRUT = RACINE / "donnees" / "brut"
 DOSSIER_BASE = RACINE / "donnees" / "base"
 
 TZ = "Europe/Paris"
-# Du 1er janvier 2019 00:00 au 31 décembre 2025 23:00, heure de Paris.
-DEBUT = pd.Timestamp("2019-01-01 00:00", tz=TZ).tz_convert("UTC")
+# Du 1er janvier 2012 00:00 au 31 décembre 2025 23:00, heure de Paris, au pas horaire.
+PAS = "h"
+DEBUT = pd.Timestamp("2012-01-01 00:00", tz=TZ).tz_convert("UTC")
 FIN = pd.Timestamp("2025-12-31 23:00", tz=TZ).tz_convert("UTC")
 
-DECOUPAGE = {2019: "train", 2020: "train", 2021: "train", 2022: "train",
-             2023: "train", 2024: "valid", 2025: "test"}
+DECOUPAGE = {**{annee: "train" for annee in range(2012, 2024)}, 2024: "valid", 2025: "test"}
 
 # Nom normalisé dans le fichier source -> nom dans notre base.
 # Couvre l'export de l'API (« consommation ») et l'export du site
@@ -85,6 +86,9 @@ def lire_brut() -> pd.DataFrame:
         sys.exit(f"Aucun fichier brut dans {DOSSIER_BRUT} : lancer l'étape 1.")
     df = pd.concat([pd.read_csv(f, sep=";", low_memory=False) for f in fichiers])
     df.columns = [normaliser(c) for c in df.columns]
+    # Deux téléchargements qui se chevauchent donnent les mêmes lignes : on n'en garde qu'une.
+    cle = ["date", "heure"] if {"date", "heure"} <= set(df.columns) else ["date_heure"]
+    df = df.drop_duplicates(subset=cle, keep="last")
     if "date_heure" not in df.columns:
         sys.exit("Colonne 'date_heure' absente : format de fichier inattendu.")
     df["date_heure"] = pd.to_datetime(df["date_heure"], utc=True)
@@ -113,7 +117,7 @@ def vers_horaire(df: pd.DataFrame, correspondance: dict) -> pd.DataFrame:
     sous["date_heure"] = pd.to_datetime(sous["date_heure"], utc=True)
     valeurs = [c for c in sous.columns if c != "date_heure"]
     sous[valeurs] = sous[valeurs].apply(pd.to_numeric, errors="coerce")
-    sous["heure_utc"] = sous["date_heure"].dt.floor("h")
+    sous["heure_utc"] = sous["date_heure"].dt.floor(PAS)
     return sous.groupby("heure_utc")[valeurs].mean()
 
 
@@ -128,7 +132,7 @@ def main() -> None:
         f"Pas de temps trouvés (min) : {pas.value_counts().head(4).to_dict()}",
     ]
 
-    index = pd.date_range(DEBUT, FIN, freq="h", tz="UTC", name="heure_utc")
+    index = pd.date_range(DEBUT, FIN, freq=PAS, tz="UTC", name="heure_utc")
     base = vers_horaire(brut, COLONNES_CONSO).reindex(index)
     local = base.index.tz_convert(TZ)
     base["heure_locale"] = local.tz_localize(None)
