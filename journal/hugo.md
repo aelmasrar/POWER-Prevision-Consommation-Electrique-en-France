@@ -39,3 +39,35 @@
 - **Résultat** : Marche. `Présentation/POWER_presentation_complete.pdf`, 48 pages.
 - **Chiffres** : aucun.
 - **Suite** : sans les `.tex` d'origine, les étapes sont faites en masquant le PDF ; repartir des sources pour les modifications lourdes.
+
+## 2026-11-09 : feature événements exceptionnels
+
+- **Objectif** : marquer les événements qui font sortir la conso de la normale (crises, grèves, compétitions, météo extrême), sous une forme facile à encoder.
+- **Ce qui a été fait** : liste de 73 événements 2012-2025 dans `donnees/evenements.csv` (une ligne par période, heure de Paris, intensité 1 à 3, colonnes `connu_la_veille` et `verifie`), et script `code/donnees/07_evenements.py` qui produit `donnees/base/evenements_horaire.parquet` et `.csv` (une colonne `evt_<categorie>` par catégorie, entiers 0 à 3) et `evenements_periodes.parquet` au format de la table `evenement` du schéma.
+- **Résultat** : Marche. 8 catégories : sanitaire, energie, geopolitique, social, reglementaire, sport, meteo, choc_national.
+- **Chiffres** : 122 736 heures ; 14 événements à vérifier (surtout les dates des canicules) ; 148 h marquées imprévisibles (attentats, à exclure des variables de prédiction).
+- **Suite** : vérifier les dates des canicules sur Météo-France ; mesurer l'apport de chaque catégorie par ablation.
+
+## 2026-11-09 : vérification des dates des événements
+
+- **Objectif** : sourcer les 14 événements marqués « à vérifier » et retirer ceux qu'on ne peut pas confirmer.
+- **Ce qui a été fait** : recherche dans les bilans climatiques Météo-France (étés 2015, 2019, 2022, 2023, 2025, année 2017), Santé publique France (2018), Enedis (tempête Ciarán), RTE (bilan électrique 2024) et INSEE (confinement 2020).
+- **Résultat** : Marche. 13 événements confirmés, avec dates corrigées de 1 à 2 jours pour certaines canicules. Froid de février 2021 retiré : pas une vague de froid nationale, dates discordantes selon les sources. Ajout de la 2e vague de chaleur de 2015 (15-22 juillet).
+- **Chiffres** : 73 événements, 0 à vérifier. Confinement 1 : conso environ 14 % sous la normale (RTE). Conso 2024 environ 6 % sous la moyenne 2014-2019 (RTE).
+- **Suite** : slides de présentation de la feature ; ablation par catégorie.
+
+## 2026-11-09 : feature jours Tempo
+
+- **Objectif** : ajouter la couleur Tempo du jour (bleu, blanc, rouge) comme indicateur, et savoir si elle varie selon la région.
+- **Ce qui a été fait** : script `code/donnees/08_tempo.py`. Il télécharge le calendrier Tempo de RTE éCO2mix par saison (secours : jourtempo.fr, depuis 2014), puis écrit `donnees/base/tempo_jours.parquet/.csv` et `tempo_horaire.parquet/.csv` (colonnes `tempo_bleu`, `tempo_blanc`, `tempo_rouge` en 0/1, jour Tempo de 6 h à 6 h, heure de Paris convertie en UTC) et `etat_tempo.txt`. Testé seulement sur des données fictives : le réseau était bloqué depuis la session Claude.
+- **Résultat** : Partiel. Tempo est national (une couleur pour toute la France) : pas de colonne région. Téléchargement réel pas encore lancé.
+- **Chiffres** : aucun pour l'instant (attendu par saison : 22 rouges, 43 blancs).
+- **Suite** : lancer le script, vérifier `etat_tempo.txt`. La couleur est choisie par RTE d'après sa prévision de conso : à tester par ablation, et seulement pour prévoir J+1.
+
+## 2026-11-09 : PDF séparé événements et Tempo
+
+- **Objectif** : présenter les deux nouveaux indicateurs sans toucher à la présentation existante.
+- **Ce qui a été fait** : `Présentation/POWER_features_evenements_tempo.pdf` (titre + slides, même DA, affichage progressif) : méthode événements, catégories, frise 2012-2025, principe Tempo. Slides événements retirées de `POWER_presentation_complete.pdf`, remise à la version du dépôt.
+- **Résultat** : Marche. 17 pages avec les étapes, puis slide « Tempo : comment on l'a construit » retirée à la demande : 13 pages, 4 slides + titre.
+- **Chiffres** : aucun.
+- **Suite** : ajouter un calendrier Tempo réel une fois le script lancé.

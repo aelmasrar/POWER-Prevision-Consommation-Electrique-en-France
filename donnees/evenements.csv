@@ -1,0 +1,74 @@
+id;categorie;type;nom;debut_local;fin_local;intensite;connu_la_veille;verifie;code_region;source;remarque
+1;sanitaire;confinement;Confinement 1 (strict);2020-03-17 12:00;2020-05-11 00:00;3;1;1;;https://insee.fr/fr/statistiques/fichier/4488584/point-conj-070520-eclairage-electricite.pdf;Conso environ 14 % sous la normale du 23/03 au 26/04/2020 (RTE).
+2;sanitaire;deconfinement;Déconfinement phase 1 (100 km, restaurants fermés);2020-05-11 00:00;2020-06-02 00:00;1;1;1;;;
+3;sanitaire;couvre_feu;Couvre-feu 21 h : Île-de-France et 8 métropoles;2020-10-17 00:00;2020-10-24 00:00;1;1;1;;https://www.gendarmerie.interieur.gouv.fr/gendinfo/actualites/2020/covid-19-retablissement-de-l-etat-d-urgence-sanitaire-et-couvre-feu-decrete-en-ile-de-france-et-dans-huit-grandes-metropoles;Pas toute la France : effet national faible.
+4;sanitaire;couvre_feu;Couvre-feu 21 h étendu à 54 départements;2020-10-24 00:00;2020-10-30 00:00;1;1;1;;https://www.gendarmerie.interieur.gouv.fr/gendinfo/actualites/2020/covid-19-retablissement-de-l-etat-d-urgence-sanitaire-et-couvre-feu-decrete-en-ile-de-france-et-dans-huit-grandes-metropoles;
+5;sanitaire;confinement;Confinement 2 (écoles et industrie ouvertes);2020-10-30 00:00;2020-12-15 00:00;2;1;1;;https://www.vie-publique.fr/en-bref/277391-covid-19-deconfinement-partir-du-15-decembre-2020;
+6;sanitaire;couvre_feu;Couvre-feu 20 h national;2020-12-15 00:00;2021-01-16 00:00;1;1;1;;https://www.vie-publique.fr/en-bref/277391-covid-19-deconfinement-partir-du-15-decembre-2020;Levé le soir du 24 décembre.
+7;sanitaire;couvre_feu;Couvre-feu 18 h national;2021-01-16 00:00;2021-03-20 00:00;1;1;1;;https://www.vie-publique.fr/en-bref/277391-covid-19-couvre-feu-18-heures-partir-du-16-janvier;
+8;sanitaire;couvre_feu;Couvre-feu 19 h (et confinement dans 16 départements);2021-03-20 00:00;2021-04-03 00:00;1;1;1;;https://www.francetransactions.com/actus/actualites-socio-economiques/deconfinement-calendrier-2021.html;
+9;sanitaire;confinement;Confinement 3 (national);2021-04-03 00:00;2021-05-03 00:00;2;1;1;;https://www.francetransactions.com/actus/actualites-socio-economiques/deconfinement-calendrier-2021.html;
+10;sanitaire;couvre_feu;Couvre-feu 19 h, fin des restrictions de déplacement;2021-05-03 00:00;2021-05-19 00:00;1;1;1;;https://www.francetransactions.com/actus/actualites-socio-economiques/deconfinement-calendrier-2021.html;
+11;sanitaire;couvre_feu;Couvre-feu 21 h, réouverture des terrasses;2021-05-19 00:00;2021-06-09 00:00;1;1;1;;https://www.francetransactions.com/actus/actualites-socio-economiques/deconfinement-calendrier-2021.html;
+12;sanitaire;couvre_feu;Couvre-feu 23 h;2021-06-09 00:00;2021-06-20 00:00;1;1;1;;https://www.francetransactions.com/actus/actualites-socio-economiques/deconfinement-calendrier-2021.html;Fin du couvre-feu le 20/06/2021.
+13;energie;sobriete;Hiver de crise énergétique, plan de sobriété;2022-10-06 00:00;2023-04-01 00:00;2;1;1;;https://www.prefectures-regions.gouv.fr/bourgogne-franche-comte/bourgogne-franche-comte/irecontenu/telechargement/99779/635696/file/Plan_sobriété de l'Etat du 06 10 2022.pdf;Plan présenté le 06/10/2022. Baisse de la conso déjà visible dès septembre.
+14;energie;sobriete;Conso durablement plus basse après la crise;2023-04-01 00:00;2026-01-01 00:00;1;1;1;;https://analysesetdonnees.rte-france.com/bilan-electrique-2024/synthese;RTE : en 2024, conso environ 6 % sous la moyenne 2014-2019, à cause des prix et de la sobriété.
+15;geopolitique;guerre;Guerre en Ukraine (invasion du 24/02/2022);2022-02-24 00:00;2026-01-01 00:00;1;1;1;;;Effet surtout via les prix de l'énergie. L'invasion elle-même n'était pas connue la veille (seul le 24/02/2022 est concerné).
+16;social;greve;Grève des transports contre la réforme des retraites;2019-12-05 00:00;2020-01-21 00:00;1;1;1;;;Grève reconductible RATP/SNCF.
+17;social;greve;Journée nationale de grève (retraites 2019-2020);2019-12-05 00:00;2019-12-06 00:00;2;1;1;;;Journée de mobilisation interprofessionnelle.
+18;social;greve;Journée nationale de grève (retraites 2019-2020);2019-12-10 00:00;2019-12-11 00:00;2;1;1;;;Journée de mobilisation interprofessionnelle.
+19;social;greve;Journée nationale de grève (retraites 2019-2020);2019-12-17 00:00;2019-12-18 00:00;2;1;1;;;Journée de mobilisation interprofessionnelle.
+20;social;greve;Journée nationale de grève (retraites 2019-2020);2020-01-09 00:00;2020-01-10 00:00;2;1;1;;;Journée de mobilisation interprofessionnelle.
+21;social;greve;Journée nationale de grève (retraites 2019-2020);2020-01-24 00:00;2020-01-25 00:00;2;1;1;;;Journée de mobilisation interprofessionnelle.
+22;social;greve;Journée nationale de grève (retraites 2023);2023-01-19 00:00;2023-01-20 00:00;2;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+23;social;greve;Journée nationale de grève (retraites 2023);2023-01-31 00:00;2023-02-01 00:00;2;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+24;social;greve;Journée nationale de grève (retraites 2023);2023-02-07 00:00;2023-02-08 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+25;social;greve;Journée nationale de grève (retraites 2023);2023-02-11 00:00;2023-02-12 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+26;social;greve;Journée nationale de grève (retraites 2023);2023-02-16 00:00;2023-02-17 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+27;social;greve;Journée nationale de grève (retraites 2023);2023-03-07 00:00;2023-03-08 00:00;2;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+28;social;greve;Journée nationale de grève (retraites 2023);2023-03-11 00:00;2023-03-12 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+29;social;greve;Journée nationale de grève (retraites 2023);2023-03-15 00:00;2023-03-16 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+30;social;greve;Journée nationale de grève (retraites 2023);2023-03-23 00:00;2023-03-24 00:00;2;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+31;social;greve;Journée nationale de grève (retraites 2023);2023-03-28 00:00;2023-03-29 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+32;social;greve;Journée nationale de grève (retraites 2023);2023-04-06 00:00;2023-04-07 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+33;social;greve;Journée nationale de grève (retraites 2023);2023-04-13 00:00;2023-04-14 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+34;social;greve;Journée nationale de grève (retraites 2023);2023-06-06 00:00;2023-06-07 00:00;1;1;1;;https://www.evous.fr/agenda-france/Retraites-prochaine-greve-manifestation-date-mobilisation-1195321.html;
+35;reglementaire;tarif;Hausse du tarif réglementé de 4 % (bouclier tarifaire);2022-02-01 00:00;2022-02-02 00:00;1;1;1;;https://selectra.info/energie/electricite/prix/evolution;Marque seulement le jour du changement. L'effet durable passe par la variable prix.
+36;reglementaire;tarif;Hausse du tarif réglementé de 15 %;2023-02-01 00:00;2023-02-02 00:00;1;1;1;;https://selectra.info/energie/electricite/prix/evolution;Marque seulement le jour du changement. L'effet durable passe par la variable prix.
+37;reglementaire;tarif;Hausse du tarif réglementé de 10 %;2023-08-01 00:00;2023-08-02 00:00;1;1;1;;https://selectra.info/energie/electricite/prix/evolution;Marque seulement le jour du changement. L'effet durable passe par la variable prix.
+38;reglementaire;tarif;Hausse du tarif réglementé d'environ 10 %;2024-02-01 00:00;2024-02-02 00:00;1;1;1;;https://selectra.info/energie/electricite/prix/evolution;Marque seulement le jour du changement. L'effet durable passe par la variable prix.
+39;reglementaire;tarif;Baisse du tarif réglementé d'environ 15 %;2025-02-01 00:00;2025-02-02 00:00;1;1;1;;https://selectra.info/energie/electricite/prix/evolution;Marque seulement le jour du changement. L'effet durable passe par la variable prix.
+40;sport;match;Coupe du monde 2014 : quart France-Allemagne;2014-07-04 18:00;2014-07-04 20:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+41;sport;match;Euro 2016 : ouverture France-Roumanie;2016-06-10 21:00;2016-06-10 23:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+42;sport;match;Euro 2016 : demi-finale France-Allemagne;2016-07-07 21:00;2016-07-07 23:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+43;sport;match;Euro 2016 : finale France-Portugal;2016-07-10 21:00;2016-07-10 23:30;2;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+44;sport;match;Coupe du monde 2018 : demi-finale France-Belgique;2018-07-10 20:00;2018-07-10 22:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+45;sport;match;Coupe du monde 2018 : finale France-Croatie;2018-07-15 17:00;2018-07-15 19:00;2;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+46;sport;match;Coupe du monde 2022 : demi-finale France-Maroc;2022-12-14 20:00;2022-12-14 22:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+47;sport;match;Coupe du monde 2022 : finale Argentine-France;2022-12-18 16:00;2022-12-18 19:00;2;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+48;sport;match;Coupe du monde de rugby 2023 : ouverture France-Nouvelle-Zélande;2023-09-08 21:15;2023-09-08 23:15;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+49;sport;match;Coupe du monde de rugby 2023 : quart France-Afrique du Sud;2023-10-15 21:00;2023-10-15 23:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+50;sport;match;Euro 2024 : demi-finale Espagne-France;2024-07-09 21:00;2024-07-09 23:00;1;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+51;sport;jo;Jeux olympiques de Paris;2024-07-26 00:00;2024-08-12 00:00;1;1;1;;;
+52;sport;match;JO de Paris : cérémonie d'ouverture;2024-07-26 19:30;2024-07-26 23:30;2;1;1;;;Fenêtre approximative : du coup d'envoi à la fin du match.
+53;sport;jo;Jeux paralympiques de Paris;2024-08-28 00:00;2024-09-09 00:00;1;1;1;;;
+54;meteo;vague_froid;Vague de froid de février 2012;2012-02-01 00:00;2012-02-14 00:00;2;1;1;;https://meteofrance.com/actualites-et-dossiers/magazine/hivers-quelques-vagues-de-froid-remarquables;Record de conso le 08/02/2012.
+55;meteo;canicule;Canicule 2015;2015-06-30 00:00;2015-07-08 00:00;1;1;1;;https://meteofrance.fr/sites/default/files/files/editorial/Bilan_ann%C3%A9e-2015-definitif_defma_0.pdf;Vague de chaleur nationale (Météo-France).
+56;meteo;canicule;Canicule 2015 (2e vague);2015-07-15 00:00;2015-07-23 00:00;1;1;1;;https://meteofrance.fr/sites/default/files/files/editorial/Bilan_ann%C3%A9e-2015-definitif_defma_0.pdf;Vague de chaleur nationale (Météo-France).
+57;meteo;vague_froid;Froid de janvier 2017;2017-01-17 00:00;2017-01-27 00:00;1;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/Bilan-climatique-definitif-annee2017-V2.pdf;Froid glacial du 17 au 26 janvier selon Météo-France.
+58;meteo;vague_froid;Pic de froid de fin février 2018;2018-02-26 00:00;2018-03-01 00:00;1;1;1;;https://meteofrance.com/actualites-et-dossiers/magazine/hivers-quelques-vagues-de-froid-remarquables;
+59;meteo;canicule;Canicule 2018;2018-07-24 00:00;2018-08-09 00:00;1;1;1;;https://www.santepubliquefrance.fr/sites/default/files/rdd/document/pe_sacs_bilan_240718_080818.pdf;Vague de chaleur nationale (Météo-France).
+60;meteo;canicule;Canicule 2019;2019-06-25 00:00;2019-07-01 00:00;2;1;1;;https://meteofrance.fr/sites/default/files/files/editorial/Bilan_ETE_2019.pdf;Vague de chaleur nationale (Météo-France).
+61;meteo;canicule;Canicule 2019;2019-07-21 00:00;2019-07-27 00:00;2;1;1;;https://meteofrance.fr/sites/default/files/files/editorial/Bilan_ETE_2019.pdf;Vague de chaleur nationale (Météo-France).
+62;meteo;canicule;Canicule 2020;2020-08-06 00:00;2020-08-14 00:00;1;1;1;;https://fr.wikipedia.org/wiki/Canicule_en_France;Vague de chaleur nationale (Météo-France).
+63;meteo;canicule;Canicule 2022;2022-06-15 00:00;2022-06-20 00:00;1;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/Bilan%20%C3%A9t%C3%A9%202022%201e%20partie_C_0.pdf;Vague de chaleur nationale (Météo-France).
+64;meteo;canicule;Canicule 2022;2022-07-12 00:00;2022-07-26 00:00;2;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/Bilan%20%C3%A9t%C3%A9%202022%201e%20partie_C_0.pdf;Vague de chaleur nationale (Météo-France).
+65;meteo;canicule;Canicule 2022;2022-07-31 00:00;2022-08-14 00:00;1;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/Bilan%20%C3%A9t%C3%A9%202022%201e%20partie_C_0.pdf;Vague de chaleur nationale (Météo-France).
+66;meteo;canicule;Canicule 2023;2023-08-17 00:00;2023-08-25 00:00;2;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/Bilan_definitif_ete_2023.pdf;Vague de chaleur nationale (Météo-France).
+67;meteo;tempete;Tempête Ciarán (coupures en Bretagne et Normandie);2023-11-01 18:00;2023-11-03 00:00;1;1;1;;https://www.enedis.fr/sites/default/files/documents/pdf/CP%20-%20CIARAN_Les%20renforts%20concentr%C3%A9s%20sur%204%20d%C3%A9partements_071123.pdf;Nuit du 1er au 2 novembre : 1,2 million de foyers coupés (Bretagne, Manche).
+68;meteo;canicule;Canicule 2025;2025-06-19 00:00;2025-07-05 00:00;2;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/bilan-climatique-%C3%A9t%C3%A9-2025-meteo-france.pdf;Vague de chaleur nationale (Météo-France).
+69;meteo;canicule;Canicule 2025;2025-08-08 00:00;2025-08-19 00:00;2;1;1;;https://meteofrance.fr/sites/meteofrance.fr/files/files/editorial/bilan-climatique-%C3%A9t%C3%A9-2025-meteo-france.pdf;Vague de chaleur nationale (Météo-France).
+70;choc_national;attentat;Attentats de janvier 2015 (Charlie Hebdo);2015-01-07 00:00;2015-01-10 00:00;1;0;1;;;
+71;choc_national;rassemblement;Marche républicaine;2015-01-11 00:00;2015-01-12 00:00;1;1;1;;;
+72;choc_national;attentat;Attentats du 13 novembre 2015;2015-11-13 21:00;2015-11-16 00:00;1;0;1;;;
+73;choc_national;attentat;Attentat de Nice;2016-07-14 22:30;2016-07-16 00:00;1;0;1;;;

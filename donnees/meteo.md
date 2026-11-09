@@ -6,6 +6,8 @@ Script : `code/donnees/04_meteo_meteofrance.py`. Même conventions que la base R
 python code/donnees/04_meteo_meteofrance.py
 ```
 
+Période par défaut : 20 décembre 2011 → 1er janvier 2026, comme la base (2012-2025) avec quelques jours de marge pour les moyennes glissantes. Changer avec `--debut` et `--fin`.
+
 Premier lancement : téléchargement de 20 à 30 fichiers (plusieurs centaines de Mo au total). Ensuite, `--sans-telechargement` relance seulement le traitement.
 
 ## 1. Source
@@ -18,7 +20,7 @@ Fichier `donnees/stations_meteo.csv` : une grande station synoptique (aéroport 
 
 Colonne `num_poste_secours` (facultative) : une 2e station du même département, qui sert **uniquement** à boucher les heures vides de la principale. Utilisée pour Lille-Lesquin, qui ne mesure ni rayonnement ni ensoleillement : Valenciennes les fournit.
 
-Limite connue : en Normandie, aucune station du département 76 ne mesure le rayonnement avant 2022 (Rouen-Boos commence en 2022, Le Havre-Octeville en 2023). Sur 2019-2021, la moyenne France du rayonnement se fait donc sans la Normandie (environ 5 % du poids), les poids des autres régions étant recalculés. Amélioration possible : ajouter une station du Calvados (14) en secours.
+Limite connue : en Normandie, aucune station du département 76 ne mesure le rayonnement avant 2022 (Rouen-Boos commence en 2022, Le Havre-Octeville en 2023). Sur 2012-2021, la moyenne France du rayonnement se fait donc sans la Normandie (environ 5 % du poids), les poids des autres régions étant recalculés. Amélioration possible : ajouter une station du Calvados (14) en secours.
 
 Si un numéro de station n'existe pas dans les fichiers, le script prend la station la plus proche qui a des mesures complètes, et le signale.
 
@@ -60,7 +62,7 @@ Moyenne des 12 régions **pondérée par la population**, car c'est là que se t
 
 ## 7. Météo observée ≠ météo prévue
 
-La règle 2 du squelette demande la météo **prévue** la veille. Météo-France ne publie pas gratuitement d'archive de ses prévisions sur 2019-2025. Ce script fournit donc la météo **mesurée**, la seule disponible sur tout l'historique.
+La règle 2 du squelette demande la météo **prévue** la veille. Météo-France ne publie pas gratuitement d'archive de ses prévisions sur 2012-2025. Ce script fournit donc la météo **mesurée**, la seule disponible sur tout l'historique.
 
 Conséquence : le score sera un peu trop optimiste, car en vrai la prévision de température J+1 se trompe d'environ 1 °C. À trancher en groupe :
 - assumer « météo observée » et le dire dans le rapport (pratique courante) ;

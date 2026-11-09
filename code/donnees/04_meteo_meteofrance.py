@@ -24,7 +24,7 @@ Sorties : donnees/brut/meteofrance/*.csv.gz            fichiers bruts (jamais mo
 
 Usage (depuis le dossier POWER) :
     python code/donnees/04_meteo_meteofrance.py
-    python code/donnees/04_meteo_meteofrance.py --debut 2018-12-20 --fin 2026-01-02
+    python code/donnees/04_meteo_meteofrance.py --debut 2011-12-20 --fin 2026-01-02
     python code/donnees/04_meteo_meteofrance.py --sans-telechargement   # brut déjà là
 """
 
@@ -234,7 +234,7 @@ def moyenne_ponderee(par_region: dict[str, pd.DataFrame], poids: pd.Series) -> p
 
 def main() -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("--debut", default="2018-12-20")   # marge pour lissages et retards
+    p.add_argument("--debut", default="2011-12-20")   # marge pour lissages et retards
     p.add_argument("--fin", default="2026-01-02")
     p.add_argument("--sans-telechargement", action="store_true")
     a = p.parse_args()
