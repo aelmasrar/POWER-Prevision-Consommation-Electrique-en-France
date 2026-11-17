@@ -71,3 +71,35 @@
 - **Résultat** : Marche. 17 pages avec les étapes, puis slide « Tempo : comment on l'a construit » retirée à la demande : 13 pages, 4 slides + titre.
 - **Chiffres** : aucun.
 - **Suite** : ajouter un calendrier Tempo réel une fois le script lancé.
+
+## 2026-11-17 : Tempo, faux jours bleus avant septembre 2014
+
+- **Objectif** : comprendre pourquoi les jours Tempo 2012-2014 n'avaient que du bleu.
+- **Ce qui a été fait** : lecture des fichiers RTE éCO2mix des saisons 2011-2012 à 2013-2014 : 100 % BLEU. Avant le 1er septembre 2014, c'est EDF qui choisissait les couleurs, RTE n'a pas cet historique (délibération CRE du 30/10/2014, citée dans le fichier). Recherche d'une autre source ouverte : aucune avant 2014. Script `08_tempo.py` corrigé : une saison sans jour blanc ni rouge est rejetée, ses heures ont les trois colonnes à 0 (couleur inconnue). Relancé avec `--sans-telechargement`.
+- **Résultat** : Marche. Tempo connu du 2014-09-01 6 h (heure de Paris) au 2025-12-31.
+- **Chiffres** : 23 380 heures inconnues (2012-01-01 -> 2014-09-01 03:00 UTC) ; 12 saisons à 300/43/22 environ, sauf 2019-2020 : 47 blancs, 18 rouges.
+- **Suite** : pour l'apprentissage, soit garder les 0/0/0 (le modèle à arbres les traite comme « inconnu »), soit n'utiliser Tempo que sur les modèles entraînés à partir de septembre 2014. À comparer.
+
+## 2026-11-17 : Tempo retiré des variables
+
+- **Objectif** : décider si on garde les jours Tempo comme variable.
+- **Ce qui a été fait** : comparaison du modèle retenu sans Tempo, avec Tempo décalé de 48 h (respecte la règle de prévision) et avec Tempo du jour (triche, pour comparer). Slide dans `Présentation/POWER_tempo_meteo.pdf` (page 1).
+- **Résultat** : Ne marche pas (gain négligeable). Tempo retiré : historique absent avant septembre 2014, couleur choisie par RTE surtout d'après la température (déjà dans le modèle), annoncée seulement la veille donc peu d'effet sur la conso.
+- **Chiffres** : sans Tempo MAPE 1,87 %, MAE 952 MW ; Tempo décalé 48 h 1,85 %, 938 MW, part de Tempo dans les décisions 0,0 % ; Tempo du jour 1,82 %, 922 MW, part 0,7 %.
+- **Suite** : script `08_tempo.py` et fichiers gardés, non utilisés par le modèle.
+
+## 2026-11-17 : Tempo mis à la poubelle
+
+- **Objectif** : sortir du projet ce qui ne sert plus.
+- **Ce qui a été fait** : `code/donnees/08_tempo.py` déplacé dans `poubelle/`, fichiers `tempo_*` et `etat_tempo.txt` de `donnees/base/` et téléchargements de `donnees/brut/tempo/` déplacés dans `poubelle/donnees/` (ajouté au `.gitignore`).
+- **Résultat** : Marche.
+- **Chiffres** : aucun.
+- **Suite** : supprimer `poubelle/` si personne n'en a besoin d'ici la fin du projet.
+
+## 2026-11-17 : météo prévue pour la validation et le test
+
+- **Objectif** : évaluer le modèle avec la météo qu'on aurait vraiment eue (la prévision de la veille), pas la météo mesurée.
+- **Ce qui a été fait** : recherche d'archives de prévisions. Météo-France ne publie pas les siennes ; archive gratuite des prévisions J-1 seulement depuis 2024 (Open-Meteo, API des runs précédents) ; avant, archive ECMWF TIGGE réservée à la recherche et très lourde. Décision : train 2012-2023 sur la météo mesurée, validation 2024 et test 2025 sur la météo prévue la veille. Script `code/donnees/10_meteo_prevue.py` (12 stations, mêmes colonnes et même moyenne France que la météo mesurée), testé sur une réponse fictive (réseau bloqué depuis la session Claude). Slide dans `Présentation/POWER_tempo_meteo.pdf` (page 2).
+- **Résultat** : Partiel. Script prêt, pas encore lancé sur les vraies données.
+- **Chiffres** : aucun pour l'instant (`etat_meteo_prevue.txt` donnera la couverture et l'erreur de la prévision météo).
+- **Suite** : lancer le script, vérifier la couverture 2024-2025, puis brancher la météo prévue sur valid et test dans `09_xgboost.py`.

@@ -10,12 +10,18 @@ utilisable pour prédire le lendemain.
 Un jour Tempo va de 6 h à 6 h le lendemain (heure de Paris), pas de minuit à minuit.
 
 Sources, essayées dans l'ordre pour chaque saison (1er septembre -> 31 août) :
-  1. RTE éCO2mix, calendrier Tempo téléchargeable (toutes les saisons depuis 2012)
-  2. jourtempo.fr, historique ouvert (seulement depuis le 1er septembre 2014)
+  1. RTE éCO2mix, calendrier Tempo téléchargeable
+  2. jourtempo.fr, historique ouvert (depuis le 1er septembre 2014)
+
+Avant le 1er septembre 2014, c'est EDF et non RTE qui choisissait les couleurs : éCO2mix
+renvoie pour ces saisons des jours tous bleus, ce qui est faux, et aucune source ouverte
+ne donne le vrai historique. Une saison sans aucun jour blanc ni rouge est donc rejetée,
+et ses heures ont les trois colonnes à 0 (couleur inconnue).
 
 Sorties (donnees/base/, hors Git) :
   tempo_jours.parquet / .csv     une ligne par jour : date, couleur, source
-  tempo_horaire.parquet / .csv   une ligne par heure UTC : tempo_bleu, tempo_blanc, tempo_rouge (0/1)
+  tempo_horaire.parquet / .csv   une ligne par heure UTC : tempo_bleu, tempo_blanc, tempo_rouge (0/1),
+                                 les trois à 0 = couleur inconnue (avant le 1er septembre 2014 à 6 h)
   etat_tempo.txt                 constat : jours par couleur et par saison, jours manquants
 
 Usage (depuis le dossier POWER) :
@@ -85,6 +91,10 @@ def telecharger(url: str, fichier: Path, telecharger_: bool) -> str | None:
     return decoder(fichier.read_bytes())
 
 
+def valide(jours: pd.DataFrame) -> bool:
+    return len(jours) >= 300 and jours["couleur"].isin(["blanc", "rouge"]).any()
+
+
 def lire_jours(telecharger_: bool) -> pd.DataFrame:
     DOSSIER_BRUT.mkdir(parents=True, exist_ok=True)
     texte = telecharger(URL_JOURTEMPO, DOSSIER_BRUT / "jourtempo_historique.csv", telecharger_)
@@ -98,9 +108,12 @@ def lire_jours(telecharger_: bool) -> pd.DataFrame:
         jours = extraire(texte) if texte else pd.DataFrame(columns=["date", "couleur"])
         jours = jours[(jours["date"] >= debut) & (jours["date"] <= fin)]
         source = "rte"
-        if len(jours) < 300:                            # saison absente ou incomplète chez RTE
+        if not valide(jours):                           # saison absente, incomplète ou toute bleue
             jours = secours[(secours["date"] >= debut) & (secours["date"] <= fin)]
             source = "jourtempo"
+        if not valide(jours):
+            print(f"  saison {a}-{a + 1} : aucune source fiable, couleur inconnue")
+            continue
         print(f"  saison {a}-{a + 1} : {len(jours)} jours ({source})")
         morceaux.append(jours.assign(source=source))
     return pd.concat(morceaux, ignore_index=True).sort_values("date").reset_index(drop=True)
